@@ -137,3 +137,107 @@ var isBuiltInTag = makeMap("slot,component", true);
 console.log("isBuiltInTag: ", isBuiltInTag("Slot"));
 console.log("isBuiltInTag: ", isBuiltInTag("slot"));
 console.log("isBuiltInTag: ", isBuiltInTag("CoMponent"));
+
+// 是否是保留属性
+var isReservedAttribute = makeMap("key,ref,slot,slot-scope,is");
+console.log(isReservedAttribute("is"));
+// 移除数组中存在的一项
+function remove(arr, item) {
+  //  判断arr是否存在length属性，有则认为它是数组
+  if (arr.length) {
+    var index = arr.indexOf(item);
+    if (index > -1) {
+      return arr.splice(index, 1);
+    }
+  }
+}
+
+// 作为公共方法
+var hasOwnProperty = Object.prototype.hasOwnProperty;
+// 判断对象里是否有这个属性(不是原型链上的)
+function hasOwn(obj, key) {
+  return hasOwnProperty.call(obj, key);
+}
+
+// 创建一个纯函数的缓存版本
+function cached(fn) {
+  var cache = Object.create(null);
+  return function cacheFn(str) {
+    var hit = cache[str];
+    return hit || (cache[str] = fn(str));
+  };
+}
+
+//驼峰转连字符
+var hyphenateRE = /\B([A-Z])/g;
+
+var hyphenate = cached(function (str) {
+  return str.replace(hyphenateRE, "-$1").toLowerCase();
+});
+// 首字母转大写
+var capitalize = cached(function (str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+});
+
+// 连字符转驼峰
+
+var camelizeRE = /-(\w)/g;
+var camlize = cached(function (str) {
+  return str.replace(camelizeRE, function (_, c) {
+    return c ? c.toUpperCase() : "";
+  });
+});
+
+// 原生bind的垫片
+function polyfillBond(fn, ctx) {
+  function boundFn(a) {
+    var l = arguments.length;
+    return l
+      ? l > 1
+        ? fn.apply(ctx, arguments)
+        : fn.call(ctx, a)
+      : fn.call(ctx);
+  }
+  boundFn._length = fn.length;
+  return boundFn;
+}
+function nativeBind(fn, ctx) {
+  return fn.bind(ctx);
+}
+var bind = Function.prototype.bind ? nativeBind : polyfillBond;
+
+// 将类数组转化为数组,支持从哪里位置开始
+function toArray(list, start) {
+  // 计算开始位置
+  start = start || 0;
+  // 获取数组最后一位
+  var i = list.length - start;
+  // 创建一个空数组,它的长度等于i
+  var ret = new Array(i);
+  console.log("ret: ", ret);
+  while (i--) {
+    console.log(i);
+    ret[i] = list[i + start];
+  }
+  return ret;
+}
+
+// 扩展对象
+function extend(to, _from) {
+  for (var key in _from) {
+    to[key] = _from[key];
+  }
+  return to;
+}
+
+// 将数组转化为对象
+function toObject(arr) {
+  var res = {};
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i]) {
+      extend(res, arr[i]);
+      console.log(res);
+    }
+  }
+  return res;
+}
