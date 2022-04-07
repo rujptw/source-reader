@@ -210,3 +210,123 @@ function toObject(arr){
   }
   return res;
 }
+
+### 空函数
+```
+function noop(a,b,c){}
+```
+### 不做任何处理，返回参数本身 
+```
+function identity(_){
+    return _;
+}
+```
+
+### 无论参数是什么,总是返回false
+```
+function no(a,b,c){
+    return false;
+}
+```
+### 返回静态属性的字符串,例子：1,2,[null,undefined],使用join将返回空字符串
+```
+function genStaticKeys(modules){
+    return modules.reduce(function(keys,m){
+     return keys.concat(m.staticKeys || [])
+    }
+    ,[]).join(',')
+
+}
+```
+
+  ### 宽松相等 ,引用类型里的值相等，也算相等，利用递归
+  ```
+  function looseEqual(a,b){
+    //   基本类型的相等
+      if(a===b) return true;
+      
+      const isObjectA = isObject(a);
+      const isObjectB = isObject(b);
+    //   引用类型的相等
+      if(isObjectA&&isObjectB){
+      try {
+          const isArrayA = Array.isArray(a)
+          const isArrayB = Array.isArray(b)
+        //   当两者都是array时,比较长度及里面的每个的值
+          if(isArrayA&&isArrayB){
+              return a.length === b.length && a.every((e,i)=>{
+                return looseEqual(e,b[i])
+              })
+        // 当两者都是日期类型时，比较毫秒数
+          }else if(a instanceof Date && b instanceof Date){
+            return a.getTime() === a.getTime()
+        // 当两者都是对象时（非数组，非日期）
+          }else if(!isArrayA&&!isArrayB){
+            const keysA = Object.keys(a)
+            const keysB = Object.keys(b);
+            return keysA.length === keysB.length && keysA.every(key=>{
+                return looseEqual(a[key],b[key])
+                
+            })
+   
+          }else{
+              return false;
+          }
+            
+      } catch (error) {
+          return false;
+          
+      }
+    //   两者都不是对象时，字符串化后比较
+    }else if(!isObjectA&&!isObjectB){
+        return String(a) === String(b)
+    }else{
+        return false;
+    }
+  }
+  ```
+  ### 使用looseEqual，实现宽松的indexOf,也就是说比较使用==,而不是原生的严格相等
+    ```
+    function looseIndexOf(arr,val){
+        
+        for (let i = 0; i < arr.length; i++) {
+            if(looseEqual(arr[i],val)) return i   
+        }
+        return -1;
+    }
+    ```
+  ### 利用闭包,让函数只调用一次
+  ```
+    function once(fn){
+        var called = false;
+        return function(){
+            if(!called){
+                called = true;
+                fn.apply(this,arguments)
+            }
+        }
+    
+    }
+  ```
+### 生命周期，指令和ssr渲染
+var SSR_ATTR = 'data-server-rendered'
+var ASSET_TYPES = [
+  'component',
+  'directive',
+  'filter',
+]
+
+var LIFECYCLE_HOOKS = [
+  'beforeCreate',
+  'created',
+  'beforeMount',
+  'mounted',
+  'beforeUpdate',
+  'updated',
+  'beforeDestroy',
+  'destroyed',
+  'activated',
+  'deactivated',
+  'errorCaptured',
+  'serverPrefetch',
+]
